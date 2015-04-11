@@ -6,9 +6,9 @@ import java.util.Base64
 import com.google.api.client.auth.oauth2.AuthorizationCodeRequestUrl
 import spray.http._
 import spray.httpx.RequestBuilding
+import spray.httpx.SprayJsonSupport._
 import spray.json._
 import spray.routing.HttpService
-import spray.httpx.SprayJsonSupport._
 
 import scala.collection.JavaConversions
 import scala.collection.mutable.ListBuffer
@@ -32,9 +32,8 @@ trait AuthenticationRoutes extends HttpService with DefaultJsonProtocol {
 
   val accountService:ListBuffer[Account] = ListBuffer()
 
-
-  private val clientID: String = sys.env.get("GOOGLE_CLIENT_ID").getOrElse("clientID")
-  private val clientSecret: String = sys.env.get("GOOGLE_CLIENT_SECRET").getOrElse("clientSecret")
+  private val clientID: String = sys.env.getOrElse("GOOGLE_CLIENT_ID", "clientID")
+  private val clientSecret: String = sys.env.getOrElse("GOOGLE_CLIENT_SECRET", "clientSecret")
   val google = GoogleProvider(clientID, clientSecret, "http://localhost:8080/google")
 
   val route =
