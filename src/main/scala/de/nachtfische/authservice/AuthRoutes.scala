@@ -24,7 +24,7 @@ case class ErrorResponse(message:String)
 case class Credentials(email:String, password:String)
 case class Account(id:String, email:String)
 
-case class GoogleProvider(clientId:String, clientSecret:String, redirectUri:String)
+case class GoogleProviderInfo(clientId:String, clientSecret:String, redirectUri:String)
 
 trait AuthenticationRoutes extends HttpService with DefaultJsonProtocol {
 
@@ -38,7 +38,8 @@ trait AuthenticationRoutes extends HttpService with DefaultJsonProtocol {
 
   private val clientID: String = sys.env.getOrElse("GOOGLE_CLIENT_ID", "clientID")
   private val clientSecret: String = sys.env.getOrElse("GOOGLE_CLIENT_SECRET", "clientSecret")
-  val google = GoogleProvider(clientID, clientSecret, "http://localhost:8080/google")
+
+  val googleAuthenticationClient:GoogleAuthenticationClient
 
   val route =
     pathPrefix("v1" / "accounts") {
@@ -87,13 +88,7 @@ trait AuthenticationRoutes extends HttpService with DefaultJsonProtocol {
       }
     }
 
-  def getGoogleAuthorizationCodeRequestUrl(googleProvider: GoogleProvider):String = {
-    new AuthorizationCodeRequestUrl("https://accounts.google.com/o/oauth2/auth", googleProvider.clientId)
-      .setRedirectUri(googleProvider.redirectUri)
-      .setScopes(JavaConversions.asJavaCollection(Seq("email", "openid")))
-      .setState("someSecretState")
-      .toString
-  }
+
 
   def decodeBase64Utf8(some: String): String = {
     new Predef.String(Base64.getDecoder.decode(some), StandardCharsets.UTF_8)

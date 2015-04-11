@@ -16,6 +16,7 @@ libraryDependencies ++= {
   Seq(
     "io.spray"            %%  "spray-can"     % sprayV,
     "io.spray"            %%  "spray-routing" % sprayV,
+    "io.spray"            %%  "spray-client"     % sprayV,
     "io.spray"            %%  "spray-json"    % "1.3.1",
     "org.mongodb"               %%  "casbah"          % "2.7.2",
     "com.novus"                 %%  "salat"           % "1.9.8",
