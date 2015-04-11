@@ -16,8 +16,10 @@ class UserRestSpec extends Specification with Specs2RouteTest with HttpService w
   val uri = "/v1/accounts"
 
   def actorRefFactory: ActorRefFactory = system
+  override val googleAuthenticationClient: GoogleAuthenticationClient = new GoogleAuthenticationClient(system, GoogleProviderInfo("","",""))
 
-  s"POST %uri" should {
+
+    s"POST %uri" should {
 
     val expected = CreateAccountRequest("false", "password")
 
