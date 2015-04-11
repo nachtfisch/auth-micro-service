@@ -36,9 +36,6 @@ trait AuthenticationRoutes extends HttpService with DefaultJsonProtocol {
 
   val accountService:AccountService = new InMemoryAccountService
 
-  private val clientID: String = sys.env.getOrElse("GOOGLE_CLIENT_ID", "clientID")
-  private val clientSecret: String = sys.env.getOrElse("GOOGLE_CLIENT_SECRET", "clientSecret")
-
   val googleAuthenticationClient:GoogleAuthenticationClient
 
   val route =
@@ -75,13 +72,7 @@ trait AuthenticationRoutes extends HttpService with DefaultJsonProtocol {
         post {
           parameter('code) { code =>
 
-            val getAccessToken: HttpRequest = RequestBuilding.Post("https://www.googleapis.com/oauth2/v3/token", FormData(Seq(
-              "code" -> code,
-              "client_id" -> google.clientId,
-              "client_secret" -> google.clientSecret,
-              "redirect_uri" -> google.redirectUri,
-              "grant_type" -> "authorization_code"
-              )))
+            googleAuthenticationClient.getAccessToken(code)
             complete(HttpResponse(400))
           }
         }
