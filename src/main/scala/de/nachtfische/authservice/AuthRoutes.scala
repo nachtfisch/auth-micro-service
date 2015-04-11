@@ -34,7 +34,7 @@ trait AuthenticationRoutes extends HttpService with DefaultJsonProtocol {
   implicit val loginAttemptsRequestFormat = jsonFormat1(LoginAttemptsRequest)
   implicit val errorResponseFormat = jsonFormat1(ErrorResponse)
 
-  val accountService:AccountService
+  val accountService:AccountService = new InMemoryAccountService
 
   private val clientID: String = sys.env.getOrElse("GOOGLE_CLIENT_ID", "clientID")
   private val clientSecret: String = sys.env.getOrElse("GOOGLE_CLIENT_SECRET", "clientSecret")
@@ -106,15 +106,16 @@ trait AccountService {
   def get(id:String): Option[Account]
 }
 
-trait InMemoryAccountService extends AccountService {
+class InMemoryAccountService extends AccountService {
 
   private val toAccount: (AccountRecord) => Account = a => Account(a.id, a.email)
   private val accounts = ListBuffer[AccountRecord]()
 
   def create(credentials: Credentials): Account = {
-    accounts += AccountRecord(generateId, credentials.email, md5(credentials.password))
+    val id: String = generateId
+    accounts += AccountRecord(id, credentials.email, md5(credentials.password))
 
-    Account(generateId, credentials.email)
+    Account(id, credentials.email)
   }
 
   def authenticate(credentials: Credentials): Option[Account] = {
