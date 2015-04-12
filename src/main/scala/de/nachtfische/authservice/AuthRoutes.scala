@@ -2,18 +2,15 @@ package de.nachtfische.authservice
 
 import java.nio.charset.StandardCharsets
 import java.security.MessageDigest
-import java.util.{UUID, Base64}
+import java.util.{Base64, UUID}
 
-import com.google.api.client.auth.oauth2.AuthorizationCodeRequestUrl
 import spray.http._
-import spray.httpx.RequestBuilding
 import spray.httpx.SprayJsonSupport._
 import spray.json._
 import spray.routing.HttpService
 
-import scala.Predef
-import scala.collection.JavaConversions
 import scala.collection.mutable.ListBuffer
+import scala.util.{Failure, Success, Try}
 
 case class CreateAccountRequest(email:String, password:String)
 case class CreateAccountResponse(href:String)
@@ -35,6 +32,7 @@ trait AuthenticationRoutes extends HttpService with DefaultJsonProtocol {
   implicit val errorResponseFormat = jsonFormat1(ErrorResponse)
 
   val accountService:AccountService = new InMemoryAccountService
+
 
   val googleAuthenticationClient:GoogleAuthenticationClient
 
@@ -71,9 +69,16 @@ trait AuthenticationRoutes extends HttpService with DefaultJsonProtocol {
       } ~ pathPrefix("v1" / "application" / "google") {
         post {
           parameter('code) { code =>
-
-            googleAuthenticationClient.getAccessToken(code)
-            complete(HttpResponse(400))
+            complete {
+               val account:Try[Either[Account,Account]] = googleAuthenticationClient.getAccessToken(code)
+                .flatMap(ac => googleAuthenticationClient.getUserInfo(ac))
+                .map(email => accountService.getOrCreateProviderAccount(email)) // get or create account here from google directory
+              account match {
+                case Success(Left(x)) => HttpResponse(200)
+                case Success(Right(x)) => HttpResponse(201)
+                case Failure(e) => throw e
+              }
+            }
           }
         }
       }
@@ -87,6 +92,7 @@ trait AuthenticationRoutes extends HttpService with DefaultJsonProtocol {
 }
 
 trait AccountService {
+  def getOrCreateProviderAccount(email: String): Either[Account,Account]
   def create(credentials: Credentials): Account
   def authenticate(account: Credentials): Option[Account]
   def get(id:String): Option[Account]
@@ -95,24 +101,25 @@ trait AccountService {
 class InMemoryAccountService extends AccountService {
 
   private val toAccount: (AccountRecord) => Account = a => Account(a.id, a.email)
+  private val googleAccounts = ListBuffer[AccountRecord]()
   private val accounts = ListBuffer[AccountRecord]()
 
-  def create(credentials: Credentials): Account = {
+  override def create(credentials: Credentials): Account = {
     val id: String = generateId
-    accounts += AccountRecord(id, credentials.email, md5(credentials.password))
+    accounts += AccountRecord(id, credentials.email, Some(md5(credentials.password)))
 
     Account(id, credentials.email)
   }
 
-  def authenticate(credentials: Credentials): Option[Account] = {
+  override def authenticate(credentials: Credentials): Option[Account] = {
     val hash = md5(credentials.password)
     accounts
       .find(a => a.hashedPassword == hash && a.email == credentials.email)
       .map(toAccount)
   }
 
-  def get(id:String) = {
-    accounts.find(a => a.id == id).map(toAccount)
+  override def get(id:String) = {
+    accounts.find(a => a.id == id).map(toAccount) orElse googleAccounts.find(a => a.id == id).map(toAccount)
   }
 
   private def generateId: String = {
@@ -123,6 +130,13 @@ class InMemoryAccountService extends AccountService {
     new Predef.String(MessageDigest.getInstance("MD5").digest(password.getBytes))
   }
 
-  case class AccountRecord(id:String, email:String, hashedPassword:String)
+  case class AccountRecord(id:String, email:String, hashedPassword:Option[String])
 
+  override def getOrCreateProviderAccount(email: String): Either[Account,Account] = {
+    googleAccounts.find( a => a.email == email).map(toAccount).map(Left(_)).getOrElse {
+      val id: String = generateId
+      googleAccounts += AccountRecord(id, email, None)
+      Right(Account(id, email))
+    }
+  }
 }
