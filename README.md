@@ -10,8 +10,9 @@ Working:
 * authenticate via social login (oauth2)
 
 
-Open features:
+Open features (in order of priority):
+* configure google provider via rest api
+* password reset
 * get access token from provider
 * support different oauth2 providers (facebook, linkedin, github)
-* password reset
 * mirror active directory accounts
