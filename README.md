@@ -1,12 +1,17 @@
 # Authentication Micro Service
 
-A simple micro service providing a REST API to deal with authentication.
+A simple REST service that takes care of authentication and user management tasks.
+
+Acts as learning project for Scala, Spray and generally FP.
 
 Working:
 * add account to in memory storage
 * authenticate account against local storage
+* authenticate via social login (oauth2)
 
-Planned features:
+
+Open features:
+* get access token from provider
+* support different oauth2 providers (facebook, linkedin, github)
 * password reset
 * mirror active directory accounts
-* authenticate via social login (oauth2)
