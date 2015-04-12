@@ -10,9 +10,14 @@ Working:
 * authenticate via social login (oauth2)
 
 
-Open features (in order of priority):
-* configure google provider via rest api
+Open features until working version:
+* configure google provider via rest api (clientId, secret, scopes)
+* consistence via mongodb
+* provide docker file
+* sample app to show usage of api
 * password reset
-* get access token from provider
+
+Other open features:
+* api call get access token from provider
 * support different oauth2 providers (facebook, linkedin, github)
 * mirror active directory accounts
