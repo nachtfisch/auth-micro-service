@@ -9,7 +9,6 @@ Working:
 * authenticate account against local storage
 * authenticate via social login (oauth2)
 
-
 Open features until working version:
 * configure google provider via rest api (clientId, secret, scopes)
 * consistence via mongodb
