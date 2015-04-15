@@ -10,7 +10,7 @@ import spray.http._
 import MediaTypes._
 import spray.routing.authentication.ContextAuthenticator
 import spray.routing.directives.AuthMagnet
-import spray.routing.directives.AuthMagnet.fromContextAuthenticator
+import spray.routing.directives.AuthMagnet._
 import scala.concurrent.ExecutionContext.Implicits.global
 
 import scala.concurrent.Future
@@ -52,7 +52,7 @@ trait MyService extends HttpService {
       }
   }
 
-  def authenticateUser = fromContextAuthenticator(authenticateUserFn)
+  def authenticateUser = authenticateUserFn
 
 
   val myRoute =
