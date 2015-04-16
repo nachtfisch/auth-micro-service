@@ -44,22 +44,29 @@ trait MyService extends HttpService {
     implicit val loginRejectedFormat = jsonFormat1(LoginRejected)
   }
 
-  def authenticateUserFn: ContextAuthenticator[UserProfile] = { ctx => {
+  def jwtAuthenticate(secret: String): ContextAuthenticator[UserProfile] = { ctx => {
           Future {
-            // parse authorization here
-            Right(UserProfile("some@some.de"))
+            ctx.request.header[Authorization] match {
+              case Some(Authorization(OAuth2BearerToken(x))) => x match {
+                case JsonWebToken(header, claims, signature) => {
+                  // TODO validate signature
+                  Right(UserProfile("some@some.de"))
+                }
+                case _ => Left(MalformedHeaderRejection("Authorization", "no valid token"))
+              }
+              case Some(Authorization(_)) => Left(MalformedHeaderRejection("Authorization", "only Bearer token type supported"))
+              case None => Left(MissingHeaderRejection("Authorization"))
+            }
           }
       }
   }
-
-  def authenticateUser = authenticateUserFn
-
 
   val myRoute =
     path("login") {
       import ServiceJsonFormat._
 
       post {
+
         entity(as[Credentials]) { credentials =>
           complete {
             if (credentials.email == "some@some.de" && credentials.password == "someOther") {
@@ -92,8 +99,8 @@ trait MyService extends HttpService {
       }
     } ~ path("secure2") {
       get {
-        authenticate(authenticateUser) { user =>
-          complete(HttpResponse(200))
+        authenticate(jwtAuthenticate("secret")) { user =>
+          complete(HttpResponse(200, s"${user.email}"))
         }
       }
     }~ path("resources" / Rest) { path =>
