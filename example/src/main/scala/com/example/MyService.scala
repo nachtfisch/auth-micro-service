@@ -50,7 +50,7 @@ trait MyService extends HttpService {
               case Some(Authorization(OAuth2BearerToken(x))) => x match {
                 case JsonWebToken(header, claims, signature) => {
                   // TODO validate signature
-                  Right(UserProfile("some@some.de"))
+                  Right(UserProfile(claims.asJsonString))
                 }
                 case _ => Left(MalformedHeaderRejection("Authorization", "no valid token"))
               }
