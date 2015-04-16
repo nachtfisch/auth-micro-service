@@ -69,7 +69,7 @@ trait MyService extends HttpService {
 
         entity(as[Credentials]) { credentials =>
           complete {
-            if (credentials.email == "some@some.de" && credentials.password == "someOther") {
+            if (credentials.email == "some@some.de" && credentials.password == "password") {
               import authentikat.jwt._
               val header = JwtHeader("HS256")
               val claimsSet = JwtClaimsSet(Map("email" -> credentials.email))
