@@ -3,16 +3,14 @@ package com.example
 import akka.actor.Actor
 import authentikat.jwt.JsonWebToken
 import spray.http.HttpHeaders.Authorization
-import spray.json.DefaultJsonProtocol
-import spray.httpx.SprayJsonSupport._
-import spray.routing._
 import spray.http._
-import MediaTypes._
+import spray.httpx.SprayJsonSupport._
+import spray.json.DefaultJsonProtocol
+import spray.routing._
 import spray.routing.authentication.ContextAuthenticator
-import spray.routing.directives.AuthMagnet
 import spray.routing.directives.AuthMagnet._
-import scala.concurrent.ExecutionContext.Implicits.global
 
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 // we don't implement our route structure directly in the service actor because
