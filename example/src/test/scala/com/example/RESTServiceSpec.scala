@@ -17,18 +17,21 @@ class RESTServiceSpec extends Specification with Specs2RouteTest with MyService 
 
   "REST service" should {
 
-    "return access token with valid credentials and access secure url" in {
-      val response = Post("/login", Credentials("some@some.de", "password")) ~> myRoute ~> check {
+    "access secure url with valid token" in {
+      Post("/login", Credentials("some@some.de", "password")) ~> myRoute ~> check {
         responseAs[String] must contain("token")
         responseAs[JsObject]
       }
-      val accessToken: Option[JsValue] = response.fields.get("token")
-      accessToken must not be None
+    }
 
-      Get("/secure2").withHeaders(Authorization(OAuth2BearerToken(accessToken.get.toString()))) ~> myRoute ~> check {
+    "access secure url with valid token returns OK" in {
+      val validToken = generateValidToken
+
+      Get("/secure2").withHeaders(Authorization(OAuth2BearerToken(validToken))) ~> myRoute ~> check {
         status must equalTo(OK)
       }
     }
+
 
     "reject request to secure url if no bearer token is used" in {
       Get("/secure2").withHeaders(Authorization(BasicHttpCredentials("a"))) ~> myRoute ~> check {
@@ -42,14 +45,18 @@ class RESTServiceSpec extends Specification with Specs2RouteTest with MyService 
       }
     }
 
-    "reject request to secure url if no valid token is used" in {
-      Get("/secure2").withHeaders(Authorization(OAuth2BearerToken("invalidToken"))) ~> myRoute ~> check {
+    "reject request to secure url if no 'Authorization' header is set" in {
+      Get("/secure2") ~> myRoute ~> check {
         status must not equalTo(OK)
       }
     }
 
-
-
+    def generateValidToken: String = {
+      val response = Post("/login", Credentials("some@some.de", "password")) ~> myRoute ~> check {
+        responseAs[JsObject]
+      }
+      response.fields.get("token").get.toString
+    }
 
   }
 }
