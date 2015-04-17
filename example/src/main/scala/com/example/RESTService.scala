@@ -45,12 +45,16 @@ trait MyService extends HttpService {
   def jwtAuthenticate(secret: String): ContextAuthenticator[UserProfile] = { ctx => {
           Future {
             ctx.request.header[Authorization] match {
-              case Some(Authorization(OAuth2BearerToken(x))) => x match {
-                case JsonWebToken(header, claims, signature) => {
-                  // TODO validate signature
-                  Right(UserProfile(claims.asJsonString))
-                }
-                case _ => Left(MalformedHeaderRejection("Authorization", "no valid token"))
+              case Some(Authorization(OAuth2BearerToken(x))) => {
+                if (!JsonWebToken.validate(x, "secret")) {
+                  Left(MalformedHeaderRejection("Authorization", "invalid signature"))
+                } else
+                  x match {
+                    case JsonWebToken(header, claims, signature) => {
+                      Right(UserProfile(claims.asJsonString))
+                    }
+                    case _ => Left(MalformedHeaderRejection("Authorization", "no valid token"))
+                  }
               }
               case Some(Authorization(_)) => Left(MalformedHeaderRejection("Authorization", "only Bearer token type supported"))
               case None => Left(MissingHeaderRejection("Authorization"))
