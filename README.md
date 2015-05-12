@@ -1,8 +1,8 @@
 # Authentication Micro Service
 
-A simple REST service that takes care of authentication and user management tasks.
+A simple REST service that takes care of authentication and user management tasks. The idea is to have sort of a micro service to not implement authentication and authorization again and again. 
 
-Acts as learning project for Scala, Spray and generally FP.
+Since it acts as a learning project to get into Scala, Spray.io and Scala FP there is a lot of 'try out' code here and also to see how different REST API requirements can be solved by the means of spray.
 
 Working:
 
